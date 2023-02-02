@@ -75,7 +75,7 @@ function getRandomColor() {
 
 let newPlanet;
 addEventListener('mousedown',function(event){
-    let m_r = Math.random()*50
+    let m_r = Math.random()*20
     newPlanet = {
         m:m_r,
         v_x:0,
@@ -96,27 +96,38 @@ addEventListener('mouseup',function(event){
 })
 
 addEventListener('keydown',function(e){
+    console.log(e.keyCode)
     switch(e.keyCode){
         case 32:{
             if(isDrawing) isDrawing = false
             else isDrawing = true
             break;
         }
+        case 78:{
+            planets.push(
+                {
+                    m:Math.random()*20,
+                    v_x:Math.random()-0.5,
+                    v_y:Math.random()-0.5,
+                    x:Math.random()*canvas.width,
+                    y:Math.random()*canvas.height,
+                    radius:Math.max(Math.random()*20/2,5),
+                    color:getRandomColor()
+                }
+            )
+            break;
+        }
+        case 67:{
+            planets = []
+            clearBackground()
+            break;
+        }
     }
 })
 
-let earth = {
-    m:1,
-    v_x:2,
-    v_y:0,
-    x:canvas.width/2,
-    y:canvas.height/2 - 200,
-    radius:5,
-    color:'aqua'
-}
 
 let sun = {
-    m:2500,
+    m:3300,
     v_x:0,
     v_y:0,
     x:canvas.width/2,
@@ -124,57 +135,60 @@ let sun = {
     radius:20,
     color:'yellow'
 }
-
+let earth = {
+    m:15,
+    v_x:3,
+    v_y:0,
+    x:canvas.width/2,
+    y:canvas.height/2 - 200,
+    radius:5,
+    color:'aqua'
+}
 let moon = {
-    m:1,
-    v_x:-2,
+    m:15,
+    v_x:-3,
     v_y:0,
     x:canvas.width/2,
     y:canvas.height/2 + 200,
     radius:5,
     color:'gray'
 }
-
 let mars = {
-    m:1,
+    m:10,
     v_x:0,
-    v_y:2,
+    v_y:4,
     x:canvas.width/2+300,
     y:canvas.height/2 + 0,
     radius:5,
     color:'red'
 }
-
 let venere = {
-    m:1,
+    m:10,
     v_x:0,
-    v_y:-2,
+    v_y:-4,
     x:canvas.width/2-300,
     y:canvas.height/2+ 0,
     radius:5,
     color:'orange'
 }
-
 let saturn = {
-    m:2,
-    v_x:-2.5,
-    v_y:2.5,
-    x:canvas.width/2+200,
-    y:canvas.height/2 + 200,
-    radius:8,
+    m:50,
+    v_x:-1.5,
+    v_y:1.5,
+    x:canvas.width/2 + 500,
+    y:canvas.height/2 + 500,
+    radius:10,
     color:'Tomato'
 }
-
 let jupyter = {
-    m:2,
-    v_x:2.5,
-    v_y:-2.5,
-    x:canvas.width/2-200,
-    y:canvas.height/2- 200,
-    radius:8,
+    m:50,
+    v_x:1.5,
+    v_y:-1.5,
+    x:canvas.width/2 - 500,
+    y:canvas.height/2 - 500,
+    radius:10,
     color:'OrangeRed'
 }
-
 
 planets.push(sun)
 planets.push(earth)
@@ -187,7 +201,7 @@ clearBackground()
 setInterval(function(){
     
     if(isDrawing){
-        clearBackground() // comment to draw path
+        //clearBackground() // comment to draw path
         step()
     }
         
