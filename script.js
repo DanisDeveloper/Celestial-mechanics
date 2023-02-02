@@ -9,55 +9,6 @@ canvas.height = window.innerHeight
 let planets =[]
 let isDrawing = true
 
-let earth = {
-    m:1,
-    v_x:2,
-    v_y:0,
-    x:canvas.width/2,
-    y:canvas.height/2 - 100,
-    radius:5,
-    color:'aqua'
-}
-
-let sun = {
-    m:700,
-    v_x:0,
-    v_y:0,
-    x:canvas.width/2,
-    y:canvas.height/2,
-    radius:20,
-    color:'yellow'
-}
-
-let moon = {
-    m:0.3,
-    v_x:1.3,
-    v_y:1,
-    x:canvas.width/2,
-    y:canvas.height/2 - 200,
-    radius:5,
-    color:'gray'
-}
-
-let mars = {
-    m:1.5,
-    v_x:-1,
-    v_y:1.3,
-    x:canvas.width/2+200,
-    y:canvas.height/2 + 150,
-    radius:5,
-    color:'red'
-}
-
-let venere = {
-    m:1,
-    v_x:1.5,
-    v_y:0.5,
-    x:canvas.width/2-200,
-    y:canvas.height/2 + 150,
-    radius:5,
-    color:'orange'
-}
 
 
 function clearBackground(){
@@ -114,51 +65,130 @@ function drawCircle(x,y,radius,startAngle,endAngle,color){
 }
 
 function getRandomColor() {
-    var letters = '23456789ABCDEF';
+    var letters = '56789ABCDEF';
     var color = '#';
     for (var i = 0; i < 6; i++) {
-      color += letters[Math.floor(Math.random() * 16)];
+      color += letters[Math.floor(Math.random()* letters.length)];
     }
     return color;
 }
 
-let start;
+let newPlanet;
 addEventListener('mousedown',function(event){
-    start = {
+    let m_r = Math.random()*50
+    newPlanet = {
+        m:m_r,
+        v_x:0,
+        v_y:0,
         x:event.clientX,
-        y:event.clientY
+        y:event.clientY,
+        radius:Math.max(m_r/2,5),
+        color:getRandomColor()
     }
     //console.log(`start (${start.x},${start.y})`)
-    //drawCircle(start.x,start.y,10,0,Math.PI*2,'yellow')
+    drawCircle(newPlanet.x,newPlanet.y,newPlanet.radius,0,Math.PI*2,newPlanet.color)
 })
 addEventListener('mouseup',function(event){
-    let end = {
-        x:event.clientX,
-        y:event.clientY
-    }
-    console.log(`end (${end.x},${end.y})`)
-    console.log(`start (${start.x},${start.y})`)
-    let m_r = Math.random()*5
-    planets.push({
-        m:m_r,
-        v_x:(end.x-start.x)/200,
-        v_y:(end.y-start.y)/200,
-        x:start.x,
-        y:start.y,
-        radius:m_r*10,
-        color:getRandomColor()
-    })
+    newPlanet.v_x = (event.clientX-newPlanet.x)/200
+    newPlanet.v_y = (event.clientY-newPlanet.y)/200
     
+    planets.push(newPlanet)
 })
 
-//planets.push(sun)
-//planets.push(earth)
-//planets.push(moon)
-//planets.push(mars)
-//planets.push(venere)
+addEventListener('keydown',function(e){
+    switch(e.keyCode){
+        case 32:{
+            if(isDrawing) isDrawing = false
+            else isDrawing = true
+            break;
+        }
+    }
+})
+
+let earth = {
+    m:1,
+    v_x:2,
+    v_y:0,
+    x:canvas.width/2,
+    y:canvas.height/2 - 200,
+    radius:5,
+    color:'aqua'
+}
+
+let sun = {
+    m:2500,
+    v_x:0,
+    v_y:0,
+    x:canvas.width/2,
+    y:canvas.height/2,
+    radius:20,
+    color:'yellow'
+}
+
+let moon = {
+    m:1,
+    v_x:-2,
+    v_y:0,
+    x:canvas.width/2,
+    y:canvas.height/2 + 200,
+    radius:5,
+    color:'gray'
+}
+
+let mars = {
+    m:1,
+    v_x:0,
+    v_y:2,
+    x:canvas.width/2+300,
+    y:canvas.height/2 + 0,
+    radius:5,
+    color:'red'
+}
+
+let venere = {
+    m:1,
+    v_x:0,
+    v_y:-2,
+    x:canvas.width/2-300,
+    y:canvas.height/2+ 0,
+    radius:5,
+    color:'orange'
+}
+
+let saturn = {
+    m:2,
+    v_x:-2.5,
+    v_y:2,
+    x:canvas.width/2+200,
+    y:canvas.height/2 + 200,
+    radius:8,
+    color:'Tomato'
+}
+
+let jupyter = {
+    m:2,
+    v_x:2.5,
+    v_y:-2,
+    x:canvas.width/2-200,
+    y:canvas.height/2- 200,
+    radius:8,
+    color:'OrangeRed'
+}
+
+
+planets.push(sun)
+planets.push(earth)
+planets.push(moon)
+planets.push(mars)
+planets.push(venere)
+planets.push(saturn)
+planets.push(jupyter)
 clearBackground()
 setInterval(function(){
-    clearBackground() // comment to draw path
-    if(isDrawing)
+    
+    if(isDrawing){
+        clearBackground() // comment to draw path
         step()
-},)
+    }
+        
+})
