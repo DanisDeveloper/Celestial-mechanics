@@ -158,7 +158,7 @@ let venere = {
 let saturn = {
     m:2,
     v_x:-2.5,
-    v_y:2,
+    v_y:2.5,
     x:canvas.width/2+200,
     y:canvas.height/2 + 200,
     radius:8,
@@ -168,7 +168,7 @@ let saturn = {
 let jupyter = {
     m:2,
     v_x:2.5,
-    v_y:-2,
+    v_y:-2.5,
     x:canvas.width/2-200,
     y:canvas.height/2- 200,
     radius:8,
