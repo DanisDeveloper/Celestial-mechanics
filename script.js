@@ -41,6 +41,27 @@ function calculate(one,two){
 
     two.v_x += a2_x
     two.v_y += a2_y
+
+
+    if(one.radius+two.radius >= r){
+        
+        planets.push({
+            m:one.m+two.m,
+            v_x:(one.m*one.v_x+two.m*two.v_x)/(one.m + two.m),
+            v_y:(one.m*one.v_y+two.m*two.v_y)/(one.m + two.m),
+            x:(one.m>two.m)?one.x:two.x,
+            y:(one.m>two.m)?one.y:two.y,
+            radius:Math.sqrt((Math.pow(one.radius,2)+Math.pow(two.radius,2))),
+            color:getRandomColor()
+        })
+        planets.splice(planets.findIndex((value)=>value===one),1)
+        planets.splice(planets.findIndex((value)=>value===two),1)
+        // one.v_x = (two.v_x+one.v_x)*(two.m/one.m)
+        // one.v_y = (two.v_y+one.v_y)*(two.m/one.m)
+
+        // two.v_x = (two.v_x+one.v_x)*(two.m/one.m)
+        // two.v_y = (two.v_y+one.v_y)*(two.m/one.m)
+    }
 }
 function step(){
     for(let i=0;i<planets.length;i++){
@@ -104,17 +125,15 @@ addEventListener('keydown',function(e){
             break;
         }
         case 78:{
-            planets.push(
-                {
-                    m:Math.random()*20,
-                    v_x:Math.random()-0.5,
-                    v_y:Math.random()-0.5,
+            planets.push({
+                    m:Math.max(Math.random()*20,1),
+                    v_x:(Math.random()-0.5)*2,
+                    v_y:(Math.random()-0.5)*2,
                     x:Math.random()*canvas.width,
                     y:Math.random()*canvas.height,
-                    radius:Math.max(Math.random()*20/2,5),
+                    radius:Math.max(Math.random()*10,5),
                     color:getRandomColor()
-                }
-            )
+                })
             break;
         }
         case 67:{
@@ -122,12 +141,45 @@ addEventListener('keydown',function(e){
             clearBackground()
             break;
         }
+        case 82:{
+            planets = []
+            clearBackground()
+            for(let i=0;i<3000;i++){
+                planets.push(
+                    {
+                        m:Math.max(Math.random()*20,1),
+                        v_x:(Math.random()-0.5)*17,
+                        v_y:(Math.random()-0.5)*17,
+                        x:Math.random()*canvas.width,
+                        y:Math.random()*canvas.height,
+                        radius:Math.max(Math.random()*10,5),
+                        color:getRandomColor()
+                    }
+                )
+            }
+        }
+        case 37:{
+            planets.forEach(value=>value.x+=10)
+            break;
+        }
+        case 38:{
+            planets.forEach(value=>value.y+=10)
+            break;
+        }
+        case 39:{
+            planets.forEach(value=>value.x-=10)
+            break;
+        }
+        case 40:{
+            planets.forEach(value=>value.y-=10)
+            break;
+        }
     }
 })
 
 
 let sun = {
-    m:3300,
+    m:3555,
     v_x:0,
     v_y:0,
     x:canvas.width/2,
@@ -136,8 +188,8 @@ let sun = {
     color:'yellow'
 }
 let earth = {
-    m:15,
-    v_x:3,
+    m:22,
+    v_x:3.5,
     v_y:0,
     x:canvas.width/2,
     y:canvas.height/2 - 200,
@@ -145,8 +197,8 @@ let earth = {
     color:'aqua'
 }
 let moon = {
-    m:15,
-    v_x:-3,
+    m:22,
+    v_x:-3.5,
     v_y:0,
     x:canvas.width/2,
     y:canvas.height/2 + 200,
@@ -154,7 +206,7 @@ let moon = {
     color:'gray'
 }
 let mars = {
-    m:10,
+    m:17,
     v_x:0,
     v_y:4,
     x:canvas.width/2+300,
@@ -163,7 +215,7 @@ let mars = {
     color:'red'
 }
 let venere = {
-    m:10,
+    m:17,
     v_x:0,
     v_y:-4,
     x:canvas.width/2-300,
@@ -172,18 +224,18 @@ let venere = {
     color:'orange'
 }
 let saturn = {
-    m:50,
-    v_x:-1.5,
-    v_y:1.5,
+    m:70,
+    v_x:-1.7,
+    v_y:1.7,
     x:canvas.width/2 + 500,
     y:canvas.height/2 + 500,
     radius:10,
     color:'Tomato'
 }
 let jupyter = {
-    m:50,
-    v_x:1.5,
-    v_y:-1.5,
+    m:70,
+    v_x:1.7,
+    v_y:-1.7,
     x:canvas.width/2 - 500,
     y:canvas.height/2 - 500,
     radius:10,
@@ -201,7 +253,7 @@ clearBackground()
 setInterval(function(){
     
     if(isDrawing){
-        //clearBackground() // comment to draw path
+        clearBackground() // comment to draw path
         step()
     }
         
