@@ -36,7 +36,9 @@ let limit_m = 500
 let min_radius = 3
 let koeff_radius = 5
 let min_mass = 3
-let koeff_coordinate = 3
+let koeff_canvas = 2
+let scale = 1
+let step_scale = 0.01
 
 function clearBackground(){
     context.fillStyle = 'black'
@@ -111,7 +113,7 @@ function step(){
 function drawCircle(x,y,radius,startAngle,endAngle,color){
     context.beginPath()
     context.fillStyle = color
-    context.arc(x,y,radius,startAngle,endAngle)
+    context.arc(x*scale,y*scale,radius*scale,startAngle,endAngle)
     context.fill()
     context.closePath()
 }
@@ -125,7 +127,7 @@ function getRandomColor() {
     return color;
 }
 
-function getRandomPlanet(x=(Math.random()-0.5)*canvas.width*koeff_coordinate,y=(Math.random()-0.5)*canvas.height*koeff_coordinate,isMoving=true){
+function getRandomPlanet(x=(Math.random()-0.5)*canvas.width*koeff_canvas/scale,y=(Math.random()-0.5)*canvas.height*koeff_canvas/scale,isMoving=true){
     let m_rand = Math.max(Math.random()*limit_m,min_mass)
     return {
         m:m_rand,
@@ -139,8 +141,8 @@ function getRandomPlanet(x=(Math.random()-0.5)*canvas.width*koeff_coordinate,y=(
 }
 
 function moveToCurrentPlanet(planet){
-    let diff_x = planet.x - canvas.width/2
-    let diff_y = planet.y - canvas.height/2
+    let diff_x = planet.x - canvas.width/2/scale
+    let diff_y = planet.y - canvas.height/2/scale
     planets.forEach(value=>{
         value.x -= diff_x
         value.y -= diff_y
@@ -281,6 +283,17 @@ addEventListener('keydown',function(e){
             moveToCurrentPlanet(linkCurrentPlanet)
             break;
         }
+        case 90:{ // z
+            scale -=step_scale
+            if(scale<0) {
+                scale = step_scale
+            }
+            break;
+        }
+        case 88:{ // x 
+            scale +=step_scale
+            break;
+        }
     }
 })
 
@@ -371,5 +384,6 @@ setInterval(function(){
         }
         if(linkMostMassivePlanet === null) printText(`mass of Sun: ${0}`,100,300)
         else printText(`mass of Sun: ${linkMostMassivePlanet.m.toFixed()}`,100,300)
+        printText(`scale: ${scale.toFixed(2)}`,100,400)
     }  
 })
