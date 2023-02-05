@@ -5,8 +5,10 @@ c - clear all planets and background
 o - change focus on the most massive planet
 a - next planet
 d - previous planet
-s - foces on current planet( have bugs )
+s - foces on current planet
 r - clear all, create 2000 planets and spread them
+q - most far planet from Sun
+Esc - toggle clear
 arrows - move camera
 mouse click drag & drop - create new random planet with boost 
 
@@ -22,11 +24,19 @@ canvas.height = window.innerHeight
 
 let planets =[]
 let isDrawing = true
+let isClearing = true
 let indexCurrentPlanet = 0
-let linkCurrentPlanet;
-let dist = 0
-let Sun_m = 0
-let shift = 50
+let linkCurrentPlanet = null;
+let linkMostMassivePlanet = null;
+let linkMostFarPlanetFromSun = null;
+
+let shift = 70
+let limit_v = 5
+let limit_m = 500
+let min_radius = 3
+let koeff_radius = 5
+let min_mass = 3
+let koeff_coordinate = 3
 
 function clearBackground(){
     context.fillStyle = 'black'
@@ -34,7 +44,7 @@ function clearBackground(){
 }
 
 function calculate(one,two){
-    let r = Math.sqrt(Math.pow(one.x-two.x,2) + Math.pow(one.y-two.y,2))
+    let r = Math.max(Math.sqrt(Math.pow(one.x-two.x,2) + Math.pow(one.y-two.y,2)),0.0000000000001)
 
     let cos2 = (one.x-two.x)/r
     let sin2 = (one.y-two.y)/r
@@ -77,15 +87,11 @@ function calculate(one,two){
             radius:Math.sqrt((Math.pow(one.radius,2)+Math.pow(two.radius,2))),
             color:getRandomColor()
         }
-        linkCurrentPlanet = planet
+        if(linkCurrentPlanet === one || linkCurrentPlanet === two)  linkCurrentPlanet = planet
+           
         planets.push(planet)
         planets.splice(planets.findIndex((value)=>value===one),1)
         planets.splice(planets.findIndex((value)=>value===two),1)
-        // one.v_x = (two.v_x+one.v_x)*(two.m/one.m)
-        // one.v_y = (two.v_y+one.v_y)*(two.m/one.m)
-
-        // two.v_x = (two.v_x+one.v_x)*(two.m/one.m)
-        // two.v_y = (two.v_y+one.v_y)*(two.m/one.m)
     }
 }
 function step(){
@@ -119,15 +125,15 @@ function getRandomColor() {
     return color;
 }
 
-function getRandomPlanet(x=Math.random()*canvas.width,y=Math.random()*canvas.height,isMoving=true){
-    let m_rand = Math.max(Math.random()*20,1)
+function getRandomPlanet(x=(Math.random()-0.5)*canvas.width*koeff_coordinate,y=(Math.random()-0.5)*canvas.height*koeff_coordinate,isMoving=true){
+    let m_rand = Math.max(Math.random()*limit_m,min_mass)
     return {
         m:m_rand,
-        v_x:isMoving?(Math.random()-0.5)*10:0,
-        v_y:isMoving?(Math.random()-0.5)*10:0,
+        v_x:isMoving?(Math.random()-0.5)*limit_v:0,
+        v_y:isMoving?(Math.random()-0.5)*limit_v:0,
         x:x,
         y:y,
-        radius:Math.min(Math.max(m_rand,3),5),
+        radius:Math.max(m_rand/limit_m *koeff_radius,min_radius),
         color:getRandomColor()
     }
 }
@@ -140,24 +146,33 @@ function moveToCurrentPlanet(planet){
         value.y -= diff_y
     })
 }
-function distance(planet){
-    let o_m = 0;
-    let object_max_m;
+function getDistanceFromSun(planet,planetWithMaxM=null){
+    if(planetWithMaxM === null)
+        planetWithMaxM = getMostMassivePlanet()
+    let distance = Math.sqrt(Math.pow(planetWithMaxM.x-planet.x,2)+Math.pow(planetWithMaxM.y-planet.y,2))
+    return distance
+}
+function getMostMassivePlanet(){
+    let planetWithMaxM = planets[0]
     planets.forEach(value=>{
-        if(value.m>o_m){
-            o_m = value.m
-            object_max_m = value
+        if(value.m>planetWithMaxM.m){
+            planetWithMaxM = value
         } 
     })
-    let dist = Math.sqrt(Math.pow(object_max_m.x-planet.x,2)+Math.pow(object_max_m.y-planet.y,2))
-    return dist
+    return planetWithMaxM
+}
+
+function printText(text,x,y){
+    context.font = "100px Arial";
+    context.fillStyle='white'
+    context.fillText(text,x,y)
 }
 
 let newPlanet;
 addEventListener('mousedown',function(event){
     newPlanet = getRandomPlanet(event.clientX,event.clientY)
     //console.log(`start (${start.x},${start.y})`)
-    //drawCircle(newPlanet.x,newPlanet.y,newPlanet.radius,0,Math.PI*2,newPlanet.color)
+    drawCircle(newPlanet.x,newPlanet.y,newPlanet.radius,0,Math.PI*2,newPlanet.color)
 })
 addEventListener('mouseup',function(event){
     newPlanet.v_x = (event.clientX-newPlanet.x)/200
@@ -175,7 +190,11 @@ addEventListener('keydown',function(e){
             break;
         }
         case 78:{ // n
-            planets.push(getRandomPlanet())
+            for(let i=0;i<5;i++){
+                let planet = getRandomPlanet()
+                planets.push(planet)
+                drawCircle(planet.x,planet.y,planet.radius,0,Math.PI*2,planet.color)
+            }
             break;
         }
         case 67:{ // c
@@ -184,9 +203,11 @@ addEventListener('keydown',function(e){
             break;
         }
         case 82:{ // r
-            Sun_m =0
-            dist =0
             planets = []
+            indexCurrentPlanet = 0
+            linkCurrentPlanet = null;
+            linkMostMassivePlanet = null;
+            linkMostFarPlanetFromSun = null;
             clearBackground()
             for(let i=0;i<2000;i++){
                 planets.push(getRandomPlanet())
@@ -209,37 +230,55 @@ addEventListener('keydown',function(e){
             break;
         }
         case 79:{ // o
-            let o_m = 0;
-            let object_max_m;
-            planets.forEach(value=>{
-                if(value.m>o_m){
-                    o_m = value.m
-                    object_max_m = value
-                } 
-            })
-            moveToCurrentPlanet(object_max_m)
-            Sun_m = object_max_m.m
+            linkMostMassivePlanet = getMostMassivePlanet()
+            linkCurrentPlanet = linkMostMassivePlanet
+            moveToCurrentPlanet(linkMostMassivePlanet)
             break;
         }
         case 65:{ // a
             indexCurrentPlanet--
-            if(indexCurrentPlanet <= -1) indexCurrentPlanet = planets.length-1
+            if(indexCurrentPlanet < 0 || indexCurrentPlanet >= planets.length) indexCurrentPlanet = planets.length-1
             linkCurrentPlanet = planets[indexCurrentPlanet]
-            moveToCurrentPlanet(linkCurrentPlanet)
-            dist = distance(linkCurrentPlanet)
+            try{
+                moveToCurrentPlanet(linkCurrentPlanet)
+            }catch(error){
+                linkCurrentPlanet = planets[0]
+                moveToCurrentPlanet(linkCurrentPlanet)
+            }
+            
             break;
         }
         case 68:{ // d
             indexCurrentPlanet++
             if(indexCurrentPlanet >= planets.length) indexCurrentPlanet = 0
             linkCurrentPlanet = planets[indexCurrentPlanet]
-            moveToCurrentPlanet(linkCurrentPlanet)
-            dist = distance(linkCurrentPlanet)
+            try{
+                moveToCurrentPlanet(linkCurrentPlanet)
+            }catch(error){
+                linkCurrentPlanet = planets[0]
+                moveToCurrentPlanet(linkCurrentPlanet)
+            }
             break;
         }
         case 83:{ // s
             moveToCurrentPlanet(linkCurrentPlanet)
-            dist = distance(linkCurrentPlanet)
+            break;
+        }
+        case 27:{ // Esc
+            if(isClearing) isClearing = false
+            else isClearing = true
+            break;
+        }
+        case 81:{ // q
+            linkMostFarPlanetFromSun = planets[0]
+            let mostMassivePlanet = getMostMassivePlanet()
+            planets.forEach(value=>{
+                if(getDistanceFromSun(value,mostMassivePlanet) > getDistanceFromSun(linkMostFarPlanetFromSun,mostMassivePlanet)){
+                    linkMostFarPlanetFromSun = value
+                }
+            })
+            linkCurrentPlanet = linkMostFarPlanetFromSun
+            moveToCurrentPlanet(linkCurrentPlanet)
             break;
         }
     }
@@ -321,13 +360,16 @@ clearBackground()
 setInterval(function(){
     
     if(isDrawing){
-        clearBackground() // comment to draw path
+        if(isClearing)
+            clearBackground() 
         step()
-        context.font = "100px Arial";
-        context.fillStyle='white'
-        context.fillText(`planets: ${planets.length}`,100,100)
-        context.fillText(`distance(this-Sun): ${dist.toFixed()}`,100,200)
-        context.fillText(`Sun m: ${Sun_m.toFixed()}`,100,300)
-    }
-        
+        printText(`planets: ${planets.length}`,100,100)
+        try{
+            printText(`distance to Sun: ${getDistanceFromSun(linkCurrentPlanet).toFixed()}`,100,200)
+        }catch(error){
+            printText(`distance to Sun: ${0}`,100,200)
+        }
+        if(linkMostMassivePlanet === null) printText(`mass of Sun: ${0}`,100,300)
+        else printText(`mass of Sun: ${linkMostMassivePlanet.m.toFixed()}`,100,300)
+    }  
 })
