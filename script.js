@@ -30,7 +30,7 @@ let linkCurrentPlanet = null;
 let linkMostMassivePlanet = null;
 let linkMostFarPlanetFromSun = null;
 
-let shift = 70
+let shift_camera = 70
 let limit_v = 5
 let limit_m = 500
 let min_radius = 3
@@ -40,9 +40,9 @@ let koeff_canvas = 2
 let scale = 1
 let step_scale = 0.01
 
-function clearBackground(){
+function clearBackground(x=0,y=0,width=canvas.width,height=canvas.height){
     context.fillStyle = 'black'
-    context.fillRect(0,0,canvas.width,canvas.height)
+    context.fillRect(x,y,width,height)
 }
 
 function calculate(one,two){
@@ -113,7 +113,7 @@ function step(){
 function drawCircle(x,y,radius,startAngle,endAngle,color){
     context.beginPath()
     context.fillStyle = color
-    context.arc(x*scale,y*scale,radius*scale,startAngle,endAngle)
+    context.arc(x*scale + canvas.width*Math.abs(scale-1)/2,y*scale+ canvas.height*Math.abs(scale-1)/2,radius*scale,startAngle,endAngle)
     context.fill()
     context.closePath()
 }
@@ -127,12 +127,16 @@ function getRandomColor() {
     return color;
 }
 
-function getRandomPlanet(x=(Math.random()-0.5)*canvas.width*koeff_canvas/scale,y=(Math.random()-0.5)*canvas.height*koeff_canvas/scale,isMoving=true){
+function getRandomPlanet(x=(Math.random()-0.5)*canvas.width*koeff_canvas + canvas.width/2,
+                         y=(Math.random()-0.5)*canvas.height*koeff_canvas+ canvas.height/2,
+                         v_x=(Math.random()-0.5)*limit_v,
+                         v_y=(Math.random()-0.5)*limit_v,
+                         ){
     let m_rand = Math.max(Math.random()*limit_m,min_mass)
     return {
         m:m_rand,
-        v_x:isMoving?(Math.random()-0.5)*limit_v:0,
-        v_y:isMoving?(Math.random()-0.5)*limit_v:0,
+        v_x:v_x,
+        v_y:v_y,
         x:x,
         y:y,
         radius:Math.max(m_rand/limit_m *koeff_radius,min_radius),
@@ -140,12 +144,26 @@ function getRandomPlanet(x=(Math.random()-0.5)*canvas.width*koeff_canvas/scale,y
     }
 }
 
+function getRandomCoordinateInEllips(planet){
+    let RX = canvas.width/2
+    let RY = canvas.height/2
+    while (true){
+        planet.x = (Math.random()-0.5)*RX*2
+        planet.y = (Math.random()-0.5)*RY*2
+        if(planet.x*planet.x/(RX*RX) + planet.y*planet.y/(RY*RY) <= 1) {
+            planet.x += canvas.width/2
+            planet.y += canvas.height/2
+            return;
+        }
+    }
+}
+
 function moveToCurrentPlanet(planet){
     let diff_x = planet.x - canvas.width/2/scale
     let diff_y = planet.y - canvas.height/2/scale
     planets.forEach(value=>{
-        value.x -= diff_x
-        value.y -= diff_y
+        value.x -= diff_x+canvas.width*Math.abs(scale-1)/2/scale
+        value.y -= diff_y+canvas.height*Math.abs(scale-1)/2/scale
     })
 }
 function getDistanceFromSun(planet,planetWithMaxM=null){
@@ -172,13 +190,16 @@ function printText(text,x,y){
 
 let newPlanet;
 addEventListener('mousedown',function(event){
-    newPlanet = getRandomPlanet(event.clientX,event.clientY)
+    newPlanet = getRandomPlanet(
+        event.clientX/scale-canvas.width*Math.abs(scale-1)/2/scale,
+        event.clientY/scale-canvas.height*Math.abs(scale-1)/2/scale
+    )
     //console.log(`start (${start.x},${start.y})`)
     drawCircle(newPlanet.x,newPlanet.y,newPlanet.radius,0,Math.PI*2,newPlanet.color)
 })
 addEventListener('mouseup',function(event){
-    newPlanet.v_x = (event.clientX-newPlanet.x)/200
-    newPlanet.v_y = (event.clientY-newPlanet.y)/200
+    newPlanet.v_x = ((event.clientX-canvas.width*Math.abs(scale-1)/2)/scale-newPlanet.x)/200
+    newPlanet.v_y = ((event.clientY-canvas.height*Math.abs(scale-1)/2)/scale-newPlanet.y)/200
     
     planets.push(newPlanet)
 })
@@ -214,21 +235,41 @@ addEventListener('keydown',function(e){
             for(let i=0;i<2000;i++){
                 planets.push(getRandomPlanet())
             }
+            break;
+        }
+        case 84:{ // t
+            planets = []
+            indexCurrentPlanet = 0
+            linkCurrentPlanet = null;
+            linkMostMassivePlanet = null;
+            linkMostFarPlanetFromSun = null;
+            clearBackground()
+            for(let i=0;i<2000;i++){
+                let coordinate = {
+                    x:0,
+                    y:0
+                }
+                getRandomCoordinateInEllips(coordinate)
+                let v_x = (coordinate.x-canvas.width/2)/20
+                let v_y = (coordinate.y-canvas.height/2)/20
+                planets.push(getRandomPlanet(coordinate.x,coordinate.y,v_x,v_y))
+            }
+            break;
         }
         case 37:{ // left
-            planets.forEach(value=>value.x+=shift)
+            planets.forEach(value=>value.x+=shift_camera/scale)
             break;
         }
         case 38:{ // up
-            planets.forEach(value=>value.y+=shift)
+            planets.forEach(value=>value.y+=shift_camera/scale)
             break;
         }
         case 39:{ // right
-            planets.forEach(value=>value.x-=shift)
+            planets.forEach(value=>value.x-=shift_camera/scale)
             break;
         }
         case 40:{ // down
-            planets.forEach(value=>value.y-=shift)
+            planets.forEach(value=>value.y-=shift_camera/scale)
             break;
         }
         case 79:{ // o
@@ -284,8 +325,9 @@ addEventListener('keydown',function(e){
             break;
         }
         case 90:{ // z
-            scale -=step_scale
-            if(scale<0) {
+            if(scale-step_scale>0) {
+                scale -=step_scale
+            } else{
                 scale = step_scale
             }
             break;
@@ -376,6 +418,7 @@ setInterval(function(){
         if(isClearing)
             clearBackground() 
         step()
+
         printText(`planets: ${planets.length}`,100,100)
         try{
             printText(`distance to Sun: ${getDistanceFromSun(linkCurrentPlanet).toFixed()}`,100,200)
