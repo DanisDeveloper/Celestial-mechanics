@@ -10,6 +10,7 @@ r - clear all, create 2000 planets and spread them
 q - most far planet from Sun
 t - The Big Bang
 i - show/hide info
+m -  planets merge together
 Esc - toggle clear
 arrows - move camera
 mouse click drag & drop - create new random planet with boost 
@@ -28,12 +29,14 @@ let planets =[]
 let isDrawing = true
 let isClearing = true
 let showInfo = true
+let doCollision = true
 let indexCurrentPlanet = 0
 let linkCurrentPlanet = null;
 let linkMostMassivePlanet = null;
 let linkMostFarPlanetFromSun = null;
 
 let shiftCamera = 70
+let numberNewPlanets = 5
 let limitVelocity = 5
 let limitMass = 500
 let minRadius = 3
@@ -49,55 +52,53 @@ function clearBackground(x=0,y=0,width=canvas.width,height=canvas.height){
     context.fillRect(x,y,width,height)
 }
 
-function calculate(one,two){
-    let r = Math.max(Math.sqrt(Math.pow(one.x-two.x,2) + Math.pow(one.y-two.y,2)),0.0000000000001)
 
-    let cos2 = (one.x-two.x)/r
-    let sin2 = (one.y-two.y)/r
+function calculate(planet1,planet2){
+    let r = Math.max(Math.sqrt(Math.pow(planet1.x-planet2.x,2) + Math.pow(planet1.y-planet2.y,2)),0.0000000000001)
 
-    let cos1 = (two.x-one.x)/r
-    let sin1 = (two.y-one.y)/r
+    let cos = (planet2.x-planet1.x)/r
+    let sin = (planet2.y-planet1.y)/r
 
-    let a1 = two.m/(r*r)
+    let a1 = planet2.m/(r*r)
     //let a1 = 1/(r)
-    //let a1 = 0.01
-    //let a1 = r/10000
+    //let a1 = 0.005
+    //let a1 = r/100000
     //let a1 = 1000000/(r*r*r)
-    //let a1 = two.m/(r)/1000
-    let a1_x = a1 * cos1
-    let a1_y = a1 * sin1
+    //let a1 = planet2.m/(r)/1000
+    let a1_x = a1 * cos
+    let a1_y = a1 * sin
     
-    let a2 = one.m/(r*r)
+    let a2 = planet1.m/(r*r)
     //let a2 = 1/(r)
-    //let a2 = 0.01
-    //let a2 = r/10000
+    //let a2 = 0.005
+    //let a2 = r/100000
     //let a2 = 1000000/(r*r*r)
-    //let a2 = one.m/(r)/1000
-    let a2_x = a2 * cos2
-    let a2_y = a2 * sin2
+    //let a2 = planet1.m/(r)/1000
+    let a2_x = a2 * -cos
+    let a2_y = a2 * -sin
     
-    one.v_x += a1_x
-    one.v_y += a1_y
+    planet1.v_x += a1_x
+    planet1.v_y += a1_y
 
-    two.v_x += a2_x
-    two.v_y += a2_y
+    planet2.v_x += a2_x
+    planet2.v_y += a2_y
 
 
-    if(one.radius+two.radius >= r){
+    if(planet1.radius+planet2.radius >= r && doCollision){
         let planet = {
-            m:one.m+two.m,
-            v_x:(one.m*one.v_x+two.m*two.v_x)/(one.m + two.m),
-            v_y:(one.m*one.v_y+two.m*two.v_y)/(one.m + two.m),
-            x:(one.m>two.m)?one.x:two.x,
-            y:(one.m>two.m)?one.y:two.y,
-            radius:Math.sqrt((Math.pow(one.radius,2)+Math.pow(two.radius,2))),
+            m:planet1.m+planet2.m,
+            v_x:(planet1.m*planet1.v_x+planet2.m*planet2.v_x)/(planet1.m + planet2.m),
+            v_y:(planet1.m*planet1.v_y+planet2.m*planet2.v_y)/(planet1.m + planet2.m),
+            x:(planet1.m>planet2.m)?planet1.x:planet2.x,
+            y:(planet1.m>planet2.m)?planet1.y:planet2.y,
+            radius:Math.sqrt((Math.pow(planet1.radius,2)+Math.pow(planet2.radius,2))),
             color:getRandomColor()
         }
-        if(linkCurrentPlanet === one || linkCurrentPlanet === two)  linkCurrentPlanet = planet
+        if(linkCurrentPlanet === planet1 || linkCurrentPlanet === planet2)  linkCurrentPlanet = planet
            
         planets.push(planet)
-        planets.splice(planets.findIndex((value)=>value===one),1)
-        planets.splice(planets.findIndex((value)=>value===two),1)
+        planets.splice(planets.findIndex((value)=>value===planet1),1)
+        planets.splice(planets.findIndex((value)=>value===planet2),1)
     }
 }
 function step(){
@@ -225,8 +226,12 @@ addEventListener('keydown',function(e){
             isDrawing = !isDrawing
             break;
         }
+        case 77:{
+            doCollision = !doCollision
+            break;
+        }
         case 78:{ // n
-            for(let i=0;i<5;i++){
+            for(let i=0;i<numberNewPlanets;i++){
                 let planet = getRandomPlanet()
                 planets.push(planet)
                 drawCircle(planet.x,planet.y,planet.radius,0,Math.PI*2,planet.color)
