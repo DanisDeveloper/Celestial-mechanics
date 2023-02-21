@@ -52,59 +52,75 @@ function clearBackground(x=0,y=0,width=canvas.width,height=canvas.height){
     context.fillRect(x,y,width,height)
 }
 
+function getAccelerationByChoice(planet1,planet2,choice){
+    switch(choice){
+        case 0:{
 
-function calculate(planet1,planet2){
-    let r = Math.max(Math.sqrt(Math.pow(planet1.x-planet2.x,2) + Math.pow(planet1.y-planet2.y,2)),0.0000000000001)
-
-    let cos = (planet2.x-planet1.x)/r
-    let sin = (planet2.y-planet1.y)/r
-
-    let a1 = planet2.m/(r*r)
-    //let a1 = 1/(r)
-    //let a1 = 0.005
-    //let a1 = r/100000
-    //let a1 = 1000000/(r*r*r)
-    //let a1 = planet2.m/(r)/1000
-    let a1_x = a1 * cos
-    let a1_y = a1 * sin
-    
-    let a2 = planet1.m/(r*r)
-    //let a2 = 1/(r)
-    //let a2 = 0.005
-    //let a2 = r/100000
-    //let a2 = 1000000/(r*r*r)
-    //let a2 = planet1.m/(r)/1000
-    let a2_x = a2 * -cos
-    let a2_y = a2 * -sin
-    
-    planet1.v_x += a1_x
-    planet1.v_y += a1_y
-
-    planet2.v_x += a2_x
-    planet2.v_y += a2_y
-
-
-    if(planet1.radius+planet2.radius >= r && doCollision){
-        let planet = {
-            m:planet1.m+planet2.m,
-            v_x:(planet1.m*planet1.v_x+planet2.m*planet2.v_x)/(planet1.m + planet2.m),
-            v_y:(planet1.m*planet1.v_y+planet2.m*planet2.v_y)/(planet1.m + planet2.m),
-            x:(planet1.m>planet2.m)?planet1.x:planet2.x,
-            y:(planet1.m>planet2.m)?planet1.y:planet2.y,
-            radius:Math.sqrt((Math.pow(planet1.radius,2)+Math.pow(planet2.radius,2))),
-            color:getRandomColor()
+            break;
         }
-        if(linkCurrentPlanet === planet1 || linkCurrentPlanet === planet2)  linkCurrentPlanet = planet
-           
-        planets.push(planet)
-        planets.splice(planets.findIndex((value)=>value===planet1),1)
-        planets.splice(planets.findIndex((value)=>value===planet2),1)
+        case 1:{
+            break;
+        }
+        case 2:{
+            break;
+        }
+        case 3:{
+            break;
+        }
+        case 4:{
+            break;
+        }
+        case 5:{
+            break;
+        }
     }
 }
+
 function step(){
     for(let i=0;i<planets.length;i++){
         for(let j=i+1;j<planets.length;j++){
-            calculate(planets[i],planets[j])
+            //calculate(i,j)
+            let r = Math.max(Math.sqrt(Math.pow(planets[i].x-planets[j].x,2) + Math.pow(planets[i].y-planets[j].y,2)),0.0000000000001)
+            let cos = (planets[j].x-planets[i].x)/r
+            let sin = (planets[j].y-planets[i].y)/r
+
+            //let a1 = planets[j].m/(r*r)
+            //let a1 = 1/(r)
+            let a1 = 0.005
+            //let a1 = r/100000
+            //let a1 = 1000000/(r*r*r)
+            //let a1 = planet2.m/(r)/1000
+            
+            //let a2 = planets[i].m/(r*r)
+            //let a2 = 1/(r)
+            let a2 = 0.005
+            //let a2 = r/100000
+            //let a2 = 1000000/(r*r*r)
+            //let a2 = planet1.m/(r)/1000
+
+            
+            planets[i].v_x += a1 * cos
+            planets[i].v_y += a1 * sin
+
+            planets[j].v_x += a2 * -cos
+            planets[j].v_y += a2 * -sin
+
+
+            if(planets[i].radius+planets[j].radius >= r && doCollision){
+                let planet = {
+                    m:planets[i].m+planets[j].m,
+                    v_x:(planets[i].m*planets[i].v_x+planets[j].m*planets[j].v_x)/(planets[i].m + planets[j].m),
+                    v_y:(planets[i].m*planets[i].v_y+planets[j].m*planets[j].v_y)/(planets[i].m + planets[j].m),
+                    x:(planets[i].m>planets[j].m)?planets[i].x:planets[j].x,
+                    y:(planets[i].m>planets[j].m)?planets[i].y:planets[j].y,
+                    radius:Math.sqrt((Math.pow(planets[i].radius,2)+Math.pow(planets[j].radius,2))),
+                    color:getRandomColor()
+                }
+                if(linkCurrentPlanet === planets[i] || linkCurrentPlanet === planets[j])  linkCurrentPlanet = planet
+                planets.splice(j,1)
+                planets.splice(i,1)
+                planets.push(planet)
+            }
         }
     }
 
@@ -112,8 +128,8 @@ function step(){
         element.x +=element.v_x
         element.y +=element.v_y
         drawCircle(element.x,element.y,element.radius,0,Math.PI*2,element.color)
-    })
-    
+    })  
+
 }
 function drawCircle(x,y,radius,startAngle,endAngle,color){
     context.beginPath()
@@ -244,7 +260,7 @@ addEventListener('keydown',function(e){
         }
         case 82:{ // r
             reset()
-            for(let i=0;i<2000;i++){
+            for(let i=0;i<1000;i++){
                 planets.push(getRandomPlanet())
             }
             break;
