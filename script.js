@@ -46,6 +46,7 @@ let koeffCanvas = 2
 let scale = 1
 let stepScale = 0.01
 let tact = 0
+let amountRandomPlanets = 1000
 
 function clearBackground(x=0,y=0,width=canvas.width,height=canvas.height){
     context.fillStyle = 'black'
@@ -84,16 +85,16 @@ function step(){
             let cos = (planets[j].x-planets[i].x)/r
             let sin = (planets[j].y-planets[i].y)/r
 
-            //let a1 = planets[j].m/(r*r)
+            let a1 = planets[j].m/(r*r)
             //let a1 = 1/(r)
-            let a1 = 0.005
+            //let a1 = 0.005
             //let a1 = r/100000
             //let a1 = 1000000/(r*r*r)
             //let a1 = planet2.m/(r)/1000
             
-            //let a2 = planets[i].m/(r*r)
+            let a2 = planets[i].m/(r*r)
             //let a2 = 1/(r)
-            let a2 = 0.005
+            //let a2 = 0.005
             //let a2 = r/100000
             //let a2 = 1000000/(r*r*r)
             //let a2 = planet1.m/(r)/1000
@@ -129,12 +130,15 @@ function step(){
         element.y +=element.v_y
         drawCircle(element.x,element.y,element.radius,0,Math.PI*2,element.color)
     })  
-
 }
 function drawCircle(x,y,radius,startAngle,endAngle,color){
     context.beginPath()
     context.fillStyle = color
-    context.arc(x*scale + canvas.width*Math.abs(scale-1)/2,y*scale+ canvas.height*Math.abs(scale-1)/2,radius*scale,startAngle,endAngle)
+    context.arc((scale<=1)?x*scale + canvas.width*Math.abs(scale-1)/2 :x*scale - canvas.width*Math.abs(scale-1)/2,
+                (scale<=1)?y*scale+ canvas.height*Math.abs(scale-1)/2 :y*scale - canvas.height*Math.abs(scale-1)/2,
+                radius*scale,
+                startAngle,
+                endAngle)
     context.fill()
     context.closePath()
 }
@@ -183,8 +187,8 @@ function moveToCurrentPlanet(planet){
     let diff_x = planet.x - canvas.width/2/scale
     let diff_y = planet.y - canvas.height/2/scale
     planets.forEach(value=>{
-        value.x -= diff_x+canvas.width*Math.abs(scale-1)/2/scale
-        value.y -= diff_y+canvas.height*Math.abs(scale-1)/2/scale
+        value.x -= (scale <=1)? diff_x+canvas.width*Math.abs(scale-1)/2/scale : diff_x-canvas.width*Math.abs(scale-1)/2/scale
+        value.y -= (scale <=1)? diff_y+canvas.height*Math.abs(scale-1)/2/scale :diff_y-canvas.height*Math.abs(scale-1)/2/scale
     })
 }
 function getDistanceFromSun(planet,planetWithMaxM=null){
@@ -222,15 +226,20 @@ function reset(){
 let newPlanet;
 addEventListener('mousedown',function(event){
     newPlanet = getRandomPlanet(
-        event.clientX/scale-canvas.width*Math.abs(scale-1)/2/scale,
-        event.clientY/scale-canvas.height*Math.abs(scale-1)/2/scale
+        (scale<=1)? event.clientX/scale-canvas.width*Math.abs(scale-1)/2/scale : event.clientX/scale+canvas.width*Math.abs(scale-1)/2/scale,
+        (scale<=1)? event.clientY/scale-canvas.height*Math.abs(scale-1)/2/scale :event.clientY/scale+canvas.height*Math.abs(scale-1)/2/scale
     )
     //console.log(`start (${start.x},${start.y})`)
     drawCircle(newPlanet.x,newPlanet.y,newPlanet.radius,0,Math.PI*2,newPlanet.color)
 })
 addEventListener('mouseup',function(event){
-    newPlanet.v_x = ((event.clientX-canvas.width*Math.abs(scale-1)/2)/scale-newPlanet.x)/200
-    newPlanet.v_y = ((event.clientY-canvas.height*Math.abs(scale-1)/2)/scale-newPlanet.y)/200
+    newPlanet.v_x = (scale<=1)? 
+    ((event.clientX-canvas.width*Math.abs(scale-1)/2)/scale-newPlanet.x)/200 : 
+    ((event.clientX+canvas.width*Math.abs(scale-1)/2)/scale-newPlanet.x)/200
+
+    newPlanet.v_y = (scale<=1)? 
+    ((event.clientY-canvas.height*Math.abs(scale-1)/2)/scale-newPlanet.y)/200 :
+    ((event.clientY+canvas.height*Math.abs(scale-1)/2)/scale-newPlanet.y)/200
     
     planets.push(newPlanet)
 })
@@ -260,14 +269,14 @@ addEventListener('keydown',function(e){
         }
         case 82:{ // r
             reset()
-            for(let i=0;i<1000;i++){
+            for(let i=0;i<amountRandomPlanets;i++){
                 planets.push(getRandomPlanet())
             }
             break;
         }
         case 84:{ // t
             reset()
-            for(let i=0;i<2000;i++){
+            for(let i=0;i<amountRandomPlanets;i++){
                 let coordinate = {
                     x:0,
                     y:0
